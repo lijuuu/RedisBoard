@@ -1,4 +1,4 @@
-module github.com/lijuuu/redisboard
+module github.com/lijuuu/RedisBoard
 
 go 1.24.1
 

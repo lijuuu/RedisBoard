@@ -173,6 +173,38 @@ func (lb *Leaderboard) IncrementScore(userID, entity string, scoreIncrement floa
 	return nil
 }
 
+// DecrementScore subtracts from user's current score.
+// Updates both global and entity rankings atomically.
+// Returns error if:
+// - user ID is empty
+// - decrement is zero
+// - Redis operation fails
+func (lb *Leaderboard) DecrementScore(userID, entity string, scoreDecrement float64) error {
+	if userID == "" || scoreDecrement == 0 {
+			return fmt.Errorf("invalid user ID or score decrement")
+	}
+
+	if !lb.config.FloatScores {
+			scoreDecrement = float64(int(scoreDecrement))
+	}
+
+	globalKey := lb.config.Namespace + ":global"
+	entitiesKey := lb.config.Namespace + ":user:entities"
+	entityKey := lb.config.Namespace + ":entity:" + entity
+
+	pipe := lb.client.Pipeline()
+	pipe.ZIncrBy(lb.ctx, globalKey, -scoreDecrement, userID) // Use negative value for decrement
+	pipe.HSet(lb.ctx, entitiesKey, userID, entity) 
+	if entity != "" {
+			pipe.ZIncrBy(lb.ctx, entityKey, -scoreDecrement, userID)
+	}
+	_, err := pipe.Exec(lb.ctx)
+	if err != nil {
+			return fmt.Errorf("failed to decrement score: %w", err)
+	}
+	return nil
+}
+
 // RemoveUser deletes user from all rankings.
 // Removes from global ranking and entity ranking.
 // Cleans up entity mapping.

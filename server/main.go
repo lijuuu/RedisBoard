@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	redisboard "github.com/lijuuu/redisboard" 
+	redisboard "github.com/lijuuu/RedisBoard" 
 )
 
 type Server struct {

@@ -77,7 +77,17 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
      - `error`: If ID is empty, increment is zero, or Redis fails.
    - **Notes**: Updates global and entity rankings atomically.
 
-5. **RemoveUser**
+5. **DecrementScore**
+   - **Purpose**: Subtracts a value from a user's score, optionally updating their entity.
+   - **Parameters**:
+     - `userID`: String, user's ID.
+     - `entity`: String, new entity (or empty to keep current).
+     - `scoreDecrement`: Float64, amount to subtract.
+   - **Returns**:
+     - `error`: If ID is empty, decrement is zero, or Redis fails.
+   - **Notes**: Updates global and entity rankings atomically.
+
+6. **RemoveUser**
    - **Purpose**: Deletes a user from all rankings and entity mappings.
    - **Parameters**:
      - `userID`: String, user’s ID.
@@ -85,7 +95,7 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
      - `error`: If ID is empty or Redis fails.
    - **Notes**: Safe if user doesn’t exist.
 
-6. **UpdateEntityByUserID**
+7. **UpdateEntityByUserID**
    - **Purpose**: Moves a user to a new entity, preserving their score.
    - **Parameters**:
      - `userID`: String, user’s ID.
@@ -94,7 +104,7 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
      - `error`: If ID is empty, user doesn’t exist, new entity is empty, or Redis fails.
    - **Notes**: Removes from old entity’s ranking, adds to new one. Atomic.
 
-7. **GetUserLeaderboardData**
+8. **GetUserLeaderboardData**
    - **Purpose**: Fetches a user’s full leaderboard info (score, ranks, top-k lists).
    - **Parameters**:
      - `userID`: String, user’s ID.
@@ -103,7 +113,7 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
      - `error`: If Redis fails.
    - **Notes**: Returns `-1` ranks and zero score for non-existent users.
 
-8. **GetTopKGlobal**
+9. **GetTopKGlobal**
    - **Purpose**: Gets the top k users across all entities.
    - **Parameters**: None.
    - **Returns**:
@@ -111,16 +121,16 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
      - `error`: If no users exist or Redis fails.
    - **Notes**: Ordered by score descending.
 
-9. **GetTopKEntity**
-   - **Purpose**: Gets the top k users in a specific entity.
-   - **Parameters**:
-     - `entity`: String, entity code (e.g., `US`).
-   - **Returns**:
-     - `[]User`: Slice of top users in entity.
-     - `error`: If entity is empty or Redis fails.
-   - **Notes**: Errors if no users in entity.
+10. **GetTopKEntity**
+    - **Purpose**: Gets the top k users in a specific entity.
+    - **Parameters**:
+      - `entity`: String, entity code (e.g., `US`).
+    - **Returns**:
+      - `[]User`: Slice of top users in entity.
+      - `error`: If entity is empty or Redis fails.
+    - **Notes**: Errors if no users in entity.
 
-10. **GetRankGlobal**
+11. **GetRankGlobal**
     - **Purpose**: Gets a user’s global rank (0-based).
     - **Parameters**:
       - `userID`: String, user’s ID.
@@ -129,7 +139,7 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
       - `error`: If Redis fails.
     - **Notes**: Fast O(log n) lookup.
 
-11. **GetRankEntity**
+12. **GetRankEntity**
     - **Purpose**: Gets a user’s rank within their entity.
     - **Parameters**:
       - `userID`: String, user’s ID.
@@ -138,7 +148,7 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
       - `error`: If Redis fails.
     - **Notes**: Checks user’s entity first.
 
-12. **GetUserScore**
+13. **GetUserScore**
     - **Purpose**: Gets a user’s current score.
     - **Parameters**:
       - `userID`: String, user’s ID.
@@ -147,7 +157,7 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
       - `error`: If user doesn’t exist or Redis fails.
     - **Notes**: Simple score lookup.
 
-13. **GetUserEntity**
+14. **GetUserEntity**
     - **Purpose**: Gets a user’s entity.
     - **Parameters**:
       - `userID`: String, user’s ID.

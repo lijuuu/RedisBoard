@@ -58,6 +58,21 @@ func TestIncrementScore(t *testing.T) {
 	}
 }
 
+func TestDecrementScore(t *testing.T) {
+	lb := newTestLeaderboard(t, Config{Namespace: "test"})
+	defer lb.Close()
+
+	lb.AddUser(User{ID: "u1", Entity: "US", Score: 100})
+	if err := lb.DecrementScore("u1", "US", 50); err != nil {
+			t.Errorf("DecrementScore: %v", err)
+	}
+
+	score, err := lb.GetUserScore("u1")
+	if err != nil || score != 50 {
+			t.Errorf("expected score 50, got %f, err: %v", score, err)
+	}
+}
+
 func TestRemoveUser(t *testing.T) {
 	lb := newTestLeaderboard(t, Config{Namespace: "test"})
 	defer lb.Close()
