@@ -194,7 +194,7 @@ func (lb *Leaderboard) DecrementScore(userID, entity string, scoreDecrement floa
 
 	pipe := lb.client.Pipeline()
 	pipe.ZIncrBy(lb.ctx, globalKey, -scoreDecrement, userID) // Use negative value for decrement
-	pipe.HSet(lb.ctx, entitiesKey, userID, entity) 
+	pipe.HSet(lb.ctx, entitiesKey, userID, entity) // Always update
 	if entity != "" {
 			pipe.ZIncrBy(lb.ctx, entityKey, -scoreDecrement, userID)
 	}
@@ -544,3 +544,29 @@ func (lb *Leaderboard) GetUserEntity(userID string) (string, error) {
 }
 
 
+// Clears entrie redis with namespace prefix
+// no return 
+func (lb *Leaderboard) ForceClearLeaderBoardWithNamespacePrefix() {
+	prefix := lb.config.Namespace + "*"
+	maxRetry := 2
+
+	for attempt := 0; attempt < maxRetry; attempt++ {
+		iter := lb.client.Scan(lb.ctx, 0, prefix, 0).Iterator()
+
+		for iter.Next(lb.ctx) {
+			_ = lb.client.Del(lb.ctx, iter.Val()) // ignore errors
+		}
+
+		if iter.Err() != nil {
+			continue // retry on scan error
+		}
+
+		// final check
+		keys, err := lb.client.Keys(lb.ctx, prefix).Result()
+		if err != nil || len(keys) > 0 {
+			continue // retry if still leftovers or err
+		}
+
+		break // all good
+	}
+}

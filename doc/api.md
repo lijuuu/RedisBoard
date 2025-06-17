@@ -165,3 +165,13 @@ Below are **RedisBoard**’s public functions, their purposes, parameters, and r
       - `string`: Entity (or empty if none).
       - `error`: If Redis fails.
     - **Notes**: Returns empty string for non-existent users.
+
+15. **ForceClearLeaderBoardWithNamespacePrefix**
+    - **Purpose**: Deletes all Redis keys associated with the leaderboard’s namespace prefix.
+    - **Parameters**: None.
+    - **Returns**: None.
+    - **Notes**: 
+      - Uses Redis `SCAN` to iteratively find and delete keys matching the namespace prefix (e.g., `game1*`).
+      - Retries up to 2 times if errors occur or keys remain.
+      - Ignores individual key deletion errors for robustness.
+      - Use with caution, as it permanently deletes all leaderboard data for the namespace.

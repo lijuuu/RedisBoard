@@ -64,12 +64,12 @@ func TestDecrementScore(t *testing.T) {
 
 	lb.AddUser(User{ID: "u1", Entity: "US", Score: 100})
 	if err := lb.DecrementScore("u1", "US", 50); err != nil {
-			t.Errorf("DecrementScore: %v", err)
+		t.Errorf("DecrementScore: %v", err)
 	}
 
 	score, err := lb.GetUserScore("u1")
 	if err != nil || score != 50 {
-			t.Errorf("expected score 50, got %f, err: %v", score, err)
+		t.Errorf("expected score 50, got %f, err: %v", score, err)
 	}
 }
 
@@ -192,5 +192,39 @@ func TestGetUserEntity(t *testing.T) {
 	entity, err := lb.GetUserEntity("u1")
 	if err != nil || entity != "US" {
 		t.Errorf("expected entity US, got %s, err: %v", entity, err)
+	}
+}
+
+func TestForceClearLeaderBoardWithNamespacePrefix(t *testing.T) {
+	lb := newTestLeaderboard(t, Config{Namespace: "test"})
+	defer lb.Close()
+
+	// add some users
+	_ = lb.AddUser(User{ID: "u1", Entity: "US", Score: 100})
+	_ = lb.AddUser(User{ID: "u2", Entity: "UK", Score: 200})
+	_ = lb.AddUser(User{ID: "u3", Entity: "IN", Score: 300})
+
+	// ensure users exist
+	if _, err := lb.GetUserScore("u1"); err != nil {
+		t.Fatalf("user u1 should exist before clear")
+	}
+
+	// clear all leaderboard data
+	lb.ForceClearLeaderBoardWithNamespacePrefix()
+
+	// assert that users are gone
+	for _, id := range []string{"u1", "u2", "u3"} {
+		if _, err := lb.GetUserScore(id); err == nil {
+			t.Errorf("expected user %s to be removed", id)
+		}
+	}
+
+	// final redis check - namespace should be empty
+	keys, err := lb.client.Keys(lb.ctx, lb.config.Namespace+"*").Result()
+	if err != nil {
+		t.Errorf("failed to fetch keys: %v", err)
+	}
+	if len(keys) != 0 {
+		t.Errorf("expected all keys to be cleared, found %d keys: %v", len(keys), keys)
 	}
 }
